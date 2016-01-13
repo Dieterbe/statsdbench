@@ -9,6 +9,7 @@ import (
 	dieterbe "github.com/Dieterbe/statsd-go"
 	alexcesaro "github.com/alexcesaro/statsd"
 	cactus "github.com/cactus/go-statsd-client/statsd"
+	"github.com/grafana/grafana/pkg/metric/helper"
 	"github.com/peterbourgon/g2s"
 	quipo "github.com/quipo/statsd"
 )
@@ -102,6 +103,43 @@ func BenchmarkG2s(b *testing.B) {
 		c.Gauge(1, gaugeKey, strconv.Itoa(gaugeValue))
 		c.Timing(1, timingKey, tValDur)
 	}
+	s.Close()
+}
+
+func BenchmarkHelperCesaro(b *testing.B) {
+	s := newServer()
+	c, err := dieterbe.NewClient(true, addr, prefix)
+	stats, err := helper.New(true, addr, "cesaro", prefix, "")
+	if err != nil {
+		b.Fatal(err)
+	}
+	counter := stats.NewCount(counterKey)
+	gauge := stats.NewGauge(gaugeKey, 0)
+	timing := stats.NewTimer(timingKey, 0)
+	for i := 0; i < b.N; i++ {
+		counter.Inc(1)
+		gauge.Value(gaugeValue)
+		timing.Value(tValDur)
+	}
+	c.Close()
+	s.Close()
+}
+func BenchmarkHelperStatsd(b *testing.B) {
+	s := newServer()
+	c, err := dieterbe.NewClient(true, addr, prefix)
+	stats, err := helper.New(true, addr, "standard", prefix, "")
+	if err != nil {
+		b.Fatal(err)
+	}
+	counter := stats.NewCount(counterKey)
+	gauge := stats.NewGauge(gaugeKey, 0)
+	timing := stats.NewTimer(timingKey, 0)
+	for i := 0; i < b.N; i++ {
+		counter.Inc(1)
+		gauge.Value(gaugeValue)
+		timing.Value(tValDur)
+	}
+	c.Close()
 	s.Close()
 }
 
