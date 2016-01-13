@@ -38,12 +38,14 @@ func BenchmarkAlexcesaro(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
+	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		c.Increment(counterKey)
 		c.Gauge(gaugeKey, gaugeValue)
 		c.Timing(timingKey, tValInt, 1)
 	}
 	c.Close()
+	b.StopTimer()
 	s.Close()
 }
 
@@ -53,12 +55,14 @@ func BenchmarkCactus(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
+	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		c.Inc(counterKey, 1, 1)
 		c.Gauge(gaugeKey, gaugeValue, 1)
 		c.Timing(timingKey, tValInt64, 1)
 	}
 	c.Close()
+	b.StopTimer()
 	s.Close()
 }
 
@@ -68,12 +72,14 @@ func BenchmarkCactusTimingAsDuration(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
+	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		c.Inc(counterKey, 1, 1)
 		c.Gauge(gaugeKey, gaugeValue, 1)
 		c.TimingDuration(timingKey, tValDur, 1)
 	}
 	c.Close()
+	b.StopTimer()
 	s.Close()
 }
 
@@ -83,12 +89,14 @@ func BenchmarkDieterbe(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
+	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		c.Increment(counterKey)
 		c.Gauge(gaugeKey, gaugeValue)
 		c.Timing(timingKey, tValInt64)
 	}
 	c.Close()
+	b.StopTimer()
 	s.Close()
 }
 
@@ -98,11 +106,13 @@ func BenchmarkG2s(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
+	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		c.Counter(1, counterKey, 1)
 		c.Gauge(1, gaugeKey, strconv.Itoa(gaugeValue))
 		c.Timing(1, timingKey, tValDur)
 	}
+	b.StopTimer()
 	s.Close()
 }
 
@@ -116,12 +126,14 @@ func BenchmarkHelperCesaro(b *testing.B) {
 	counter := stats.NewCount(counterKey)
 	gauge := stats.NewGauge(gaugeKey, 0)
 	timing := stats.NewTimer(timingKey, 0)
+	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		counter.Inc(1)
 		gauge.Value(gaugeValue)
 		timing.Value(tValDur)
 	}
 	c.Close()
+	b.StopTimer()
 	s.Close()
 }
 func BenchmarkHelperStatsd(b *testing.B) {
@@ -134,12 +146,14 @@ func BenchmarkHelperStatsd(b *testing.B) {
 	counter := stats.NewCount(counterKey)
 	gauge := stats.NewGauge(gaugeKey, 0)
 	timing := stats.NewTimer(timingKey, 0)
+	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		counter.Inc(1)
 		gauge.Value(gaugeValue)
 		timing.Value(tValDur)
 	}
 	c.Close()
+	b.StopTimer()
 	s.Close()
 }
 
@@ -147,12 +161,14 @@ func BenchmarkQuipo(b *testing.B) {
 	s := newServer()
 	c := quipo.NewStatsdBuffer(flushPeriod, quipo.NewStatsdClient(addr, prefix))
 	c.Logger = logger{}
+	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		c.Incr(counterKey, 1)
 		c.Gauge(gaugeKey, gaugeValue)
 		c.Timing(timingKey, tValInt64)
 	}
 	c.Close()
+	b.StopTimer()
 	s.Close()
 }
 
@@ -160,12 +176,14 @@ func BenchmarkQuipoTimingAsDuration(b *testing.B) {
 	s := newServer()
 	c := quipo.NewStatsdBuffer(flushPeriod, quipo.NewStatsdClient(addr, prefix))
 	c.Logger = logger{}
+	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		c.Incr(counterKey, 1)
 		c.Gauge(gaugeKey, gaugeValue)
 		c.PrecisionTiming(timingKey, tValDur)
 	}
 	c.Close()
+	b.StopTimer()
 	s.Close()
 }
 
