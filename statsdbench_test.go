@@ -1,6 +1,7 @@
 package statsdbench
 
 import (
+	"fmt"
 	"net"
 	"strconv"
 	"testing"
@@ -9,9 +10,9 @@ import (
 	dieterbe "github.com/Dieterbe/statsd-go"
 	alexcesaro "github.com/alexcesaro/statsd"
 	cactus "github.com/cactus/go-statsd-client/statsd"
-	"github.com/grafana/grafana/pkg/metric/helper"
 	"github.com/peterbourgon/g2s"
 	quipo "github.com/quipo/statsd"
+	"github.com/raintank/met/helper"
 )
 
 const (
@@ -100,6 +101,26 @@ func BenchmarkDieterbe(b *testing.B) {
 	s.Close()
 }
 
+func BenchmarkDieterbeRaw(b *testing.B) {
+	s := newServer()
+	c, err := dieterbe.NewClient(true, addr, prefix)
+	if err != nil {
+		b.Fatal(err)
+	}
+	b.StartTimer()
+	counter := []byte(fmt.Sprintf("%s:1|c", counterKey))
+	gauge := []byte(fmt.Sprintf("%s:%d|g", gaugeKey, gaugeValue))
+	timing := []byte(fmt.Sprintf("%s:%d|ms", timingKey, tValInt))
+	for i := 0; i < b.N; i++ {
+		c.SendRaw(counter)
+		c.SendRaw(gauge)
+		c.SendRaw(timing)
+	}
+	c.Close()
+	b.StopTimer()
+	s.Close()
+}
+
 func BenchmarkG2s(b *testing.B) {
 	s := newServer()
 	c, err := g2s.Dial("udp", addr)
@@ -118,41 +139,19 @@ func BenchmarkG2s(b *testing.B) {
 
 func BenchmarkHelperCesaro(b *testing.B) {
 	s := newServer()
-	c, err := dieterbe.NewClient(true, addr, prefix)
-	stats, err := helper.New(true, addr, "cesaro", prefix, "")
+	c, err := helper.New(true, addr, "standard", prefix, "")
 	if err != nil {
 		b.Fatal(err)
 	}
-	counter := stats.NewCount(counterKey)
-	gauge := stats.NewGauge(gaugeKey, 0)
-	timing := stats.NewTimer(timingKey, 0)
+	counter := c.NewCount(counterKey)
+	gauge := c.NewGauge(gaugeKey, 0)
+	timing := c.NewTimer(timingKey, 0)
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		counter.Inc(1)
 		gauge.Value(gaugeValue)
 		timing.Value(tValDur)
 	}
-	c.Close()
-	b.StopTimer()
-	s.Close()
-}
-func BenchmarkHelperStatsd(b *testing.B) {
-	s := newServer()
-	c, err := dieterbe.NewClient(true, addr, prefix)
-	stats, err := helper.New(true, addr, "standard", prefix, "")
-	if err != nil {
-		b.Fatal(err)
-	}
-	counter := stats.NewCount(counterKey)
-	gauge := stats.NewGauge(gaugeKey, 0)
-	timing := stats.NewTimer(timingKey, 0)
-	b.StartTimer()
-	for i := 0; i < b.N; i++ {
-		counter.Inc(1)
-		gauge.Value(gaugeValue)
-		timing.Value(tValDur)
-	}
-	c.Close()
 	b.StopTimer()
 	s.Close()
 }
